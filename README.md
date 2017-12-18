@@ -11,6 +11,7 @@ Forked from [https://github.com/ChristianKohler/web-presentation](https://github
 - Added component for showing highlighted code examples
 - Added some configurable attributes
 - Removed transitions
+- Mobile touch swipe support
 
 ## Getting Started
 
@@ -88,6 +89,12 @@ Set a background image:
     </template>
   </web-code-sample>
 </web-slide>
+```
+
+### Swipe support
+
+```html
+<web-presentation-swipecontrols></web-presentation-swipecontrols>
 ```
 
 
