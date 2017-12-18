@@ -8,23 +8,66 @@
       right: 0;
       overflow: hidden;
     }
-    
+
     @media print {
       :host {
         display: block;
         position: relative;
       }
     }
+
+    ::selection {
+      color: #fff;
+      background: #bee4fd;
+    }
+
+    ::-moz-selection {
+      color: #fff;
+      background: #bee4fd;
+    }
+
+    .twitter, .event {
+      position: fixed;
+      right: 10px;
+      z-index: 1000;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #fff;
+      mix-blend-mode: difference;
+    }
+
+    .twitter {
+      top: 10px;
+    }
+
+    .event {
+      bottom: 10px;
+    }
+
+    .handle:not(:empty) ~ .hashtag:not(:empty)::before {
+      content: ' / ';
+      margin: 0 10px;
+    }
   </style>
-  <content></content>
+
+  <div class="twitter">
+    <span class="handle"></span>
+    <span class="hashtag"></span>
+  </div>
+  <div class="event"></div>
+  <slot></slot>
 </template>
 
 <script>
   (function(){
-    var presentationProto = Object.create(HTMLElement.prototype),
-    importDoc = document.currentScript.ownerDocument;
+    const importDoc = (document._currentScript || document.currentScript).ownerDocument;
+    const templateContent = importDoc.querySelector('template#template-web-presentation').content;
 
-    PresentationData = {
+    function getSlideNumberFromHash() {
+      return parseInt(location.hash.slice(1), 10) || 0;
+    }
+
+    const PresentationData = {
       slides: [],
       activeSlide: 0,
       get slideCount() { return this.slides.length },
@@ -32,99 +75,116 @@
       isAnimating: false
     };
 
-    presentationProto.createdCallback = presentationProtoCreatedCallback;
-    presentationProto.registerSlide   = registerSlide;
-    presentationProto.previousSlide   = previousSlide;
-    presentationProto.nextSlide       = nextSlide;
-    presentationProto.goToSlide       = goToSlide;
-    presentationProto.nextStep        = nextStep;
-    presentationProto.prevStep        = prevStep;
+    class WebPresentationElement extends HTMLElement {
+      static get observedAttributes() {
+        return ['twitter-handle', 'event-name', 'hashtag'];
+      }
 
-    function presentationProtoCreatedCallback(){
-      // Create PresentationData
-      this.slideData = Object.create(PresentationData);
+      constructor() {
+        super();
+      }
 
-      // Create ShadowDom
-      var template = importDoc.querySelector('#template-web-presentation');
-      var templateContent = document.importNode(template.content, true);
-      this.createShadowRoot().appendChild(templateContent);
+      connectedCallback() {
+        this.slideData = Object.create(PresentationData);
 
-      // Bind onhashchange
-      window.addEventListener("hashchange", function(){
+        const shadowRoot = this.attachShadow({mode: 'open'});
+        shadowRoot.appendChild(templateContent.cloneNode(true));
+
+        this.attributeChangedCallback('twitter-handle', undefined, this.getAttribute('twitter-handle'));
+        this.attributeChangedCallback('hashtag', undefined, this.getAttribute('hashtag'));
+        this.attributeChangedCallback('event-name', undefined, this.getAttribute('event-name'));
+
+        window.addEventListener("hashchange", function(){
+          this.goToSlide(getSlideNumberFromHash());
+        }.bind(this));
+      }
+
+      attributeChangedCallback(attributeName, oldValue, newValue, namespace) {
+        if (this.shadowRoot) {
+          switch(attributeName) {
+            case 'twitter-handle':
+              this.shadowRoot.querySelector('.twitter .handle').innerHTML = newValue;
+              break;
+            case 'hashtag':
+              this.shadowRoot.querySelector('.twitter .hashtag').innerHTML = newValue;
+              break;
+            case 'event-name':
+              this.shadowRoot.querySelector('.event').innerHTML = newValue;
+              break;
+          }
+        }
+      }
+
+      registerSlide(slide) {
+        const children = [].slice.call(this.childNodes).filter(node => ['WEB-SLIDE', 'WEB-SLIDE-TITLE'].indexOf(node.tagName) >= 0);
+        this.slideData.slides[children.indexOf(slide)] = slide;
         this.goToSlide(getSlideNumberFromHash());
-      }.bind(this));
-    }
-    
-    function nextStep() {
-      if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.nextFragment()) {
-        this.nextSlide();  
-      }
-    }
-    
-    function prevStep() {
-      if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.previousFragment()) {
-        this.previousSlide();  
-      }
-    }
-    
-    function registerSlide(slide) {
-      this.slideData.slides.push(slide);
-      this.goToSlide(getSlideNumberFromHash());
-    }
-
-    function previousSlide(){
-      var activeSlide = this.slideData.activeSlide;
-
-      if(activeSlide > 0) {
-        slideToSlide.call(this, activeSlide-1);
-      }
-    }
-
-    function nextSlide(){
-      var activeSlide = this.slideData.activeSlide;
-
-      if(activeSlide < this.slideData.slideCount - 1) {
-        slideToSlide.call(this, activeSlide+1);
-      }
-    }
-
-    function goToSlide(number, forward) {
-      var slideData = this.slideData;
-
-      if (slideData.slideCount <= number || slideData.isAnimating) {
-        return;
       }
 
-      // Animate
-      slideData.isAnimating = true;
-      Promise.all([
-        slideData.slides[slideData.activeSlide].hideSlide(forward),
-        slideData.slides[number].showSlide(forward)
-      ]).then(function(){
-        slideData.isAnimating = false;
-        slideData.activeSlide = number;
-        history.pushState(null, null, '#' + number);
-        dispatchSlideChangedEvent.call(this);
-      }.bind(this));
+
+      previousSlide(){
+        var activeSlide = this.slideData.activeSlide;
+
+        if(activeSlide > 0) {
+          this.slideToSlide(activeSlide-1);
+        }
+      }
+
+      nextSlide(){
+        var activeSlide = this.slideData.activeSlide;
+
+        if(activeSlide < this.slideData.slideCount - 1) {
+          this.slideToSlide(activeSlide+1);
+        }
+      }
+
+      goToSlide(number, forward) {
+        var slideData = this.slideData;
+
+        if (slideData.slideCount <= number || slideData.isAnimating) {
+          return;
+        }
+
+        // Animate
+        slideData.isAnimating = true;
+        Promise.all([
+          slideData.slides[slideData.activeSlide] && slideData.slides[slideData.activeSlide].hideSlide(forward),
+          slideData.slides[number] && slideData.slides[number].showSlide(forward)
+        ]).then(function(){
+          slideData.isAnimating = false;
+          slideData.activeSlide = number;
+          history.pushState(null, null, '#' + number);
+          this.dispatchSlideChangedEvent();
+        }.bind(this));
+      }
+
+      nextStep() {
+        if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.nextFragment()) {
+          this.nextSlide();
+        }
+      }
+
+      prevStep() {
+        if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.previousFragment()) {
+          this.previousSlide();
+        }
+      }
+
+      dispatchSlideChangedEvent() {
+        var total = this.slideData.slides.length;
+        var current = this.slideData.activeSlide;
+        var event = new CustomEvent('SlideChanged', {
+          'detail': { total: total, current: current }
+        });
+        this.dispatchEvent(event);
+      }
+
+      slideToSlide(number) {
+          this.goToSlide(number, this.slideData.activeSlide < number);
+      }
+
     }
 
-    function dispatchSlideChangedEvent() {
-      var total = this.slideData.slides.length;
-      var current = this.slideData.activeSlide;
-      var event = new CustomEvent('SlideChanged', {
-        'detail': { total: total, current: current }
-      });
-      this.dispatchEvent(event);
-    }
-
-    function slideToSlide(number) {
-        this.goToSlide(number, this.slideData.activeSlide < number);
-    }
-
-    function getSlideNumberFromHash() {
-      return parseInt(location.hash.slice(1), 10) || 0;
-    }
-
-    document.registerElement('web-presentation', {prototype: presentationProto});
+    customElements.define('web-presentation', WebPresentationElement);
   })();
 </script>

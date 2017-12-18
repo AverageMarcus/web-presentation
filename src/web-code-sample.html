@@ -1,0 +1,53 @@
+
+<script src="/highlight.pack.js"></script>
+<template id="template-web-code-sample">
+  <style>
+    :host {
+      display: block;
+      text-align: left;
+    }
+  </style>
+
+  <pre id="code"></pre>
+</template>
+
+<script>
+  (function(){
+    const importDoc = (document._currentScript || document.currentScript).ownerDocument;
+    const templateContent = importDoc.querySelector('template#template-web-code-sample').content;
+
+    function cleanIndentation(str) {
+      let pattern = str.match(/\s*\n[\t\s]*/);
+      return str.replace(new RegExp(pattern, 'g'), '\n');
+    }
+
+    class WebCodeSampleElement extends HTMLElement {
+      static get observedAttributes() {
+        return ['theme'];
+      }
+
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        const shadowRoot = this.attachShadow({mode: 'open'});
+        shadowRoot.appendChild(templateContent.cloneNode(true));
+
+        if (this.querySelector('template')) {
+          shadowRoot.querySelector('#code').innerHTML = cleanIndentation(this.querySelector('template').innerHTML);
+          hljs.highlightBlock(shadowRoot.querySelector('#code'));
+        }
+
+        this.setTheme(this.getAttribute('theme'));
+      }
+
+      setTheme(theme) {
+        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="/${theme || 'solarized-light'}.css">`);
+        this.shadowRoot.insertBefore(stylesheet, this.shadowRoot.querySelector('#code'));
+      }
+    }
+
+    customElements.define('web-code-sample', WebCodeSampleElement);
+  })();
+</script>

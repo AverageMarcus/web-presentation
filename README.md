@@ -3,30 +3,16 @@ web-presentation
 
 ### A presentation framework created with web components
 
-* Lightweight
-* No dependencies
-* Modular
-* Extendable
+Forked from [https://github.com/ChristianKohler/web-presentation](https://github.com/ChristianKohler/web-presentation) and heavily customised to my personal tastes / needs.
 
-## Example
-http://christiankohler.github.io/web-presentation/
-
-## Plunks
-Try web-presentation ..
-
-http://plnkr.co/edit/uU2lbg?p=preview
-
-http://plnkr.co/edit/rTH17v?p=preview
+- Updated to v1 web components spec
+- Added support for showing Twitter handle / hashtag on every slide
+- Support for showing event title on every slide
+- Added component for showing highlighted code examples
+- Added some configurable attributes
+- Removed transitions
 
 ## Getting Started
-
-Install web-presentation with npm
-
-    npm i web-presentation
-
-Get web-presentation via bower
-
-    bower install web-presentation
 
 Include the `dist/web-presentation.html` file in your project.
 
@@ -59,25 +45,51 @@ Use the web slide component in your html file.
 |`web-slide-title`|The title is the same element as web-slide. The idea is to make it easier to style all title slide|
 |`web-presentation-keyboardcontrols`|One way to control the presentation. Use left and right arrow keys or space to go to the next slide|
 |`web-presentation-progress`|Displays a progress bar on the bottom of the screen|
+|`web-code-sample`|Displays syntax highlighted code examples (requires `highlight.pack.js` and a theme CSS - available in the dist folder)|
 
-### Transitions
-Usage:
+### Config
+
+Show Twitter handle in corner of all slides:
 
 ```html
-  <web-slide-title data-transition="fall">
+<web-presentation twitter-handle="@Marcus_Noble_"></web-presentation>
 ```
 
-Available transitions:
-* fall
-* moveFromTop
-* moveToLeft
-* moveFromBottom
-* newspaper
-* fadeIn
-* fadeInFromTop
-* fadeInFromBottom
+Show Twitter hashtag in corner of all slides:
 
-If you want to add a transitions to this library please make a pull-request.
+```html
+<web-presentation hashtag="#WebComponents"></web-presentation>
+```
+
+Show event name in corner of all slides:
+
+```html
+<web-presentation event-name="Web Components Monthly"></web-presentation>
+```
+
+Set a background image:
+
+```html
+<web-slide background-image="https://media.giphy.com/media/NGALQBUgvmVTa/giphy.gif">
+  <h1>
+    Pugz!
+  </h1>
+</web-slide>
+```
+
+### Syntax Highlighted Code Samples
+
+```html
+<web-slide>
+  <h1>Syntax Highlighting</h1>
+  <web-code-sample>
+    <template>
+      console.log('Hello, World!');
+    </template>
+  </web-code-sample>
+</web-slide>
+```
+
 
 ### Fragments
 Show parts of a slide step by step.
@@ -109,10 +121,6 @@ Mixed:
   <div id="div2" data-show="10">Show after</div>
 ```
 
-## Run local demo
-* Install local dev dependencies: `npm install`
-* Run gulp `gulp`
-
 ## Requirements
 Use Chrome 36 or higher to use web-presentation without a polyfill.
 
@@ -120,5 +128,5 @@ Use Chrome 36 or higher to use web-presentation without a polyfill.
 Help make web-presentation better.
 
 * Install local dev dependencies: `npm install`
-* Run gulp watch task: `gulp`
+* Run watch task: `npm start`
 * Edit src files

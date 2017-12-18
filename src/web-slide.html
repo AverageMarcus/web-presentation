@@ -1,5 +1,3 @@
-
-
 <template id="template-web-slide">
   <style>
     :host {
@@ -12,8 +10,9 @@
       width: 100%;
       height: 100%;
       opacity: 0;
-      background: #FFF;
-      color: #3C3C3C;
+      background: #222;
+      background-size: cover;
+      color: #fff;
       font-family: sans-serif;
     }
 
@@ -39,7 +38,7 @@
       left: 50%;
       margin-top: -240px;
       margin-left: -320px;
-      
+
       -webkit-backface-visibility: hidden;
     	-moz-backface-visibility: hidden;
     	backface-visibility: hidden;
@@ -73,7 +72,7 @@
     @keyframes defaultTransition {
       from { -webkit-transform: translateX(0); transform: translateX(0); }
     }
-    
+
     @media print {
       :host {
         display: block;
@@ -89,11 +88,11 @@
         opacity: 1;
         page-break-after: always;
       }
-      
-      div#content { 
+
+      div#content {
         zoom: initial !important;
       }
-      
+
       ::content [data-enter] {
         visibility: visible !important;
       }
@@ -101,14 +100,16 @@
   </style>
 
   <div id="content">
-    <content></content>
+    <slot></slot>
   </div>
 </template>
 
 <script>
-  var slideProto = Object.create(HTMLElement.prototype);
+  (function() {
 
-  (function(){
+    const importDoc = (document._currentScript || document.currentScript).ownerDocument;
+    const templateContent = importDoc.querySelector('template#template-web-slide').content;
+
     var transition = {
       "forward" : {
         "out":  "forward-out",
@@ -121,90 +122,118 @@
     };
     var outClass = "on-top";
     var activeClass = "active";
-    var importDoc = document.currentScript.ownerDocument;
-    var template = importDoc.querySelector('#template-web-slide');
-    
-    slideProto.createdCallback   = slideProtoCreatedCallback;
-    slideProto.attachedCallback  = slideProtoAttachedCallback;
-    slideProto.showSlide         = showSlide;
-    slideProto.hideSlide         = hideSlide;
-    slideProto.nextFragment      = nextFragment;
-    slideProto.previousFragment  = previousFragment;
 
-    function slideProtoCreatedCallback(){  
-      var templateContent = document.importNode(template.content, true);
-      this.createShadowRoot().appendChild(templateContent);
-      
-      initFragments.call(this);
-     
-      this.parentNode.registerSlide(this);
-    }
 
-    function slideProtoAttachedCallback() {
-      window.addEventListener("resize", resize.bind(this), false);
-      setTimeout(resize.bind(this), 0);
-    }
-
-    function showSlide(forward) {
-      if(forward) {
-        initFragments.call(this);
+    class WebSlideElement extends HTMLElement {
+      static get observedAttributes() {
+        return ['background-image'];
       }
 
-      if(forward !== undefined) {
-        this.classList.add(activeClass);
-        this.classList.add(forward ? transition.forward.in : transition.backwards.in);
-        this.addEventListener("webkitAnimationEnd", endAnimationOnNewSlide);
-        return promiseOnEvent("webkitAnimationEnd", this);
-      } else {
-        this.classList.add(activeClass);
-        return Promise.resolve("done");
+      constructor() {
+        super();
       }
-    }
 
-    function hideSlide(forward){
-      if (forward !== undefined) {
-        this.classList.add(forward ? transition.forward.out : transition.backwards.out);
-        this.classList.add(outClass);
-        this.addEventListener("webkitAnimationEnd", endAnimationOnOldSlide);
-        return promiseOnEvent("webkitAnimationEnd", this);
-      } else {
+      connectedCallback() {
+        const shadowRoot = this.attachShadow({mode: 'open'});
+        shadowRoot.appendChild(templateContent.cloneNode(true));
+        this.initFragments();
+        this.parentNode.registerSlide(this);
+
+        window.addEventListener("resize", () => this.resize(), false);
+        setTimeout(() => this.resize(), 0);
+
+        if (this.getAttribute('background-image')) {
+          this.setBackgroundImage(this.getAttribute('background-image'));
+        }
+      }
+
+      attributeChangedCallback(attributeName, oldValue, newValue, namespace) {
+        if (attributeName === 'background-image') {
+          this.setBackgroundImage(newValue);
+        }
+      }
+
+      setBackgroundImage(bg) {
+        this.style.backgroundImage = `url(${bg})`;
+      }
+
+      showSlide(forward) {
+        if(forward) {
+          this.initFragments(this);
+        }
+
+        if(forward !== undefined) {
+          this.classList.add(activeClass);
+          this.classList.add(forward ? transition.forward.in : transition.backwards.in);
+          this.addEventListener("webkitAnimationEnd", this.endAnimationOnNewSlide);
+          return this.promiseOnEvent("webkitAnimationEnd", this);
+        } else {
+          this.classList.add(activeClass);
+          return Promise.resolve("done");
+        }
+      }
+
+      hideSlide(forward){
+        if (forward !== undefined) {
+          this.classList.add(forward ? transition.forward.out : transition.backwards.out);
+          this.classList.add(outClass);
+          this.addEventListener("webkitAnimationEnd", this.endAnimationOnOldSlide);
+          return this.promiseOnEvent("webkitAnimationEnd", this);
+        } else {
+          this.classList.remove(activeClass);
+          return Promise.resolve("done");
+        }
+      }
+
+      endAnimationOnOldSlide() {
+        this.removeEventListener("webkitAnimationEnd", this.endAnimationOnOldSlide);
         this.classList.remove(activeClass);
-        return Promise.resolve("done");
+        this.classList.remove(transition.forward.out);
+        this.classList.remove(transition.backwards.out);
+        this.classList.remove(outClass);
+      }
+
+      endAnimationOnNewSlide() {
+        this.removeEventListener("webkitAnimationEnd", this.endAnimationOnNewSlide);
+        this.classList.remove(transition.forward.in);
+        this.classList.remove(transition.backwards.in);
+      }
+
+      resize() {
+        var content       = this.shadowRoot.getElementById("content"),
+            widthContent  = content.offsetWidth,
+            heightContent = content.offsetHeight,
+            xScale        = this.offsetWidth / widthContent,
+            yScale        = this.offsetHeight / heightContent;
+
+        content.style.zoom = Math.min(xScale, yScale);
+      }
+
+      initFragments() {
+        this.fragmentCtrl = new FragmentsController(this);
+      }
+
+      nextFragment() {
+        return this.fragmentCtrl.next();
+      }
+
+      previousFragment() {
+        return this.fragmentCtrl.previous();
+      }
+
+      promiseOnEvent(eventName, slide) {
+        return new Promise(function(resolve){
+          slide.addEventListener("webkitAnimationEnd", function(e){
+            slide.removeEventListener("webkitAnimationEnd", this);
+            resolve(slide);
+          });
+        });
       }
     }
 
-    function promiseOnEvent(eventName, slide) {
-      return new Promise(function(resolve){
-        slide.addEventListener("webkitAnimationEnd", function(e){
-          slide.removeEventListener("webkitAnimationEnd", this);
-          resolve(slide);
-        });
-      });
-    }
+    window.WebSlideElement = WebSlideElement;
+    customElements.define('web-slide', WebSlideElement);
 
-    function endAnimationOnOldSlide() {
-      this.removeEventListener("webkitAnimationEnd", endAnimationOnOldSlide);
-      this.classList.remove(activeClass);
-      this.classList.remove(transition.forward.out);
-      this.classList.remove(transition.backwards.out);
-      this.classList.remove(outClass);
-    }
-
-    function endAnimationOnNewSlide() {
-      this.removeEventListener("webkitAnimationEnd", endAnimationOnNewSlide);
-      this.classList.remove(transition.forward.in);
-      this.classList.remove(transition.backwards.in);
-    }
-
-    function resize() {
-      var content       = this.shadowRoot.getElementById("content"),
-          widthContent  = content.offsetWidth,
-          heightContent = content.offsetHeight,
-          xScale        = this.offsetWidth / widthContent,
-          yScale        = this.offsetHeight / heightContent;
-
-      content.style.zoom = Math.min(xScale, yScale);
-    }
 
     /**
      * Fragment
@@ -212,100 +241,89 @@
     function Fragment(element){
       var indexEnter = element.getAttribute('data-enter');
       var indexExit = element.getAttribute('data-exit');
-      
+
+      this.show = function() {
+        this.elem.style.visibility = '';
+      };
+
+      this.hide = function() {
+        this.elem.style.visibility = 'hidden';
+      };
+
       this.enter = indexEnter ? parseInt(indexEnter, 10) : undefined;
       this.exit = indexExit ? parseInt(indexExit, 10) : undefined;
       this.elem = element;
-      
+
       if(!this.exit || this.enter < this.exit) {
         this.hide();
       }
     }
-    
-    Fragment.prototype.show = function() {
-      this.elem.style.visibility = '';
-    };
-    
-    Fragment.prototype.hide = function() {
-      this.elem.style.visibility = 'hidden';
-    };
+
 
     /**
      * FragmentsController
      */
-     function FragmentsController(root) {
+    function FragmentsController(root) {
       this.fragments = [].slice
         .call(root.querySelectorAll('[data-enter], [data-exit]'))
         .map(function(element){
           return new Fragment(element);
         });
-      
+
+        this.next = function() {
+          if(this.currentStep === this.steps.length) {
+            return false;
+          }
+
+          this.fragments.filter(this.currentEnterFragments.bind(this)).forEach(this.showFragment);
+          this.fragments.filter(this.currentExitFragments.bind(this)).forEach(this.hideFragment);
+          this.currentStep++;
+          return true;
+        };
+
+        this.previous = function() {
+          if(this.currentStep === 0 || this.currentStep > this.steps.length) {
+            return false;
+          }
+
+          this.currentStep--;
+          this.fragments.filter(this.currentEnterFragments.bind(this)).forEach(this.hideFragment);
+          this.fragments.filter(this.currentExitFragments.bind(this)).forEach(this.showFragment);
+          return true;
+        };
+
+        this.currentEnterFragments = function(fragment) {
+          return fragment.enter === this.steps[this.currentStep];
+        };
+
+        this.currentExitFragments = function(fragment) {
+          return fragment.exit === this.steps[this.currentStep];
+        };
+
+        this.showFragment = function(fragment) {
+          fragment.show();
+        };
+
+        this.hideFragment = function(fragment) {
+          fragment.hide();
+        };
+
       this.steps = this.fragments.reduce(getSteps, []);
       this.currentStep = 0;
-      
+
       function getSteps(steps, fragment){
         if(fragment.enter && steps.indexOf(fragment.enter) === -1) {
           steps.push(fragment.enter);
         }
-    
+
         if(fragment.exit && steps.indexOf(fragment.exit) === 1) {
           steps.push(fragment.exit);
         }
-    
+
         return steps.sort();
       }
     }
-    
-    FragmentsController.prototype.next = function() {
-      if(this.currentStep === this.steps.length) {
-        return false;
-      }
-      
-      this.fragments.filter(this.currentEnterFragments.bind(this)).forEach(this.showFragment);
-      this.fragments.filter(this.currentExitFragments.bind(this)).forEach(this.hideFragment);
-      this.currentStep++;
-      return true;
-    };
-    
-    FragmentsController.prototype.previous = function() {
-      if(this.currentStep === 0 || this.currentStep > this.steps.length) {
-        return false;
-      }
-      
-      this.currentStep--;
-      this.fragments.filter(this.currentEnterFragments.bind(this)).forEach(this.hideFragment);
-      this.fragments.filter(this.currentExitFragments.bind(this)).forEach(this.showFragment);
-      return true;
-    };
-    
-    FragmentsController.prototype.currentEnterFragments = function(fragment) {
-      return fragment.enter === this.steps[this.currentStep];
-    };
-    
-    FragmentsController.prototype.currentExitFragments = function(fragment) {
-      return fragment.exit === this.steps[this.currentStep];
-    };
-    
-    FragmentsController.prototype.showFragment = function(fragment) {
-      fragment.show();
-    };
-    
-    FragmentsController.prototype.hideFragment = function(fragment) {
-      fragment.hide();
-    };
 
-    function initFragments() {
-      this.fragmentCtrl = new FragmentsController(this);
-    }
-    
-    function nextFragment() {
-      return this.fragmentCtrl.next();
-    }
-    
-    function previousFragment() {
-      return this.fragmentCtrl.previous();
-    }
-    
-    document.registerElement('web-slide', {prototype: slideProto});
   })();
+
 </script>
