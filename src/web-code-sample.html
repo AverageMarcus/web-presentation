@@ -42,7 +42,7 @@
       }
 
       setTheme(theme) {
-        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="/${theme || 'solarized-light'}.css">`);
+        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'solarized-light.css'}">`);
         this.shadowRoot.insertBefore(stylesheet, this.shadowRoot.querySelector('#code'));
       }
     }

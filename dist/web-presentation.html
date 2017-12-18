@@ -600,7 +600,7 @@
 
     customElements.define('web-presentation-progress', WebPresentationProgressElement);
   })();</script>
-<script src="/highlight.pack.js"></script><template id="template-web-code-sample"><style>:host {
+<template id="template-web-code-sample"><style>:host {
       display: block;
       text-align: left;
     }</style><pre id="code"></pre></template><script>(function(){
@@ -634,7 +634,7 @@
       }
 
       setTheme(theme) {
-        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="/${theme || 'solarized-light'}.css">`);
+        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'solarized-light.css'}">`);
         this.shadowRoot.insertBefore(stylesheet, this.shadowRoot.querySelector('#code'));
       }
     }
