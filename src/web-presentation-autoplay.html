@@ -8,9 +8,13 @@
         connectedCallback() {
           const timeout = this.getAttribute('timeout') || 10000;
 
-          setInterval(() => {
+          const interval = setInterval(() => {
             if (!this.parentNode.nextStep()) {
-              this.parentNode.goToSlide(0);
+              if (this.getAttribute('loop') === 'true') {
+                this.parentNode.goToSlide(0);
+              } else {
+                cancelInterval(interval);
+              }
             }
           }, timeout);
         }

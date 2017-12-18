@@ -12,6 +12,7 @@ Forked from [https://github.com/ChristianKohler/web-presentation](https://github
 - Added some configurable attributes
 - Removed transitions
 - Mobile touch swipe support
+- Ability to auto-progress to next slide
 
 ## Getting Started
 
