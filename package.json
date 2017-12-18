@@ -1,8 +1,7 @@
 {
   "name": "web-presentation",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "Pure Web Components Presentation Framework",
-  "main": "index.js",
   "dependencies": {
     "gulp-webserver": "~0.7.1"
   },
@@ -13,22 +12,29 @@
     "gulp-webserver": "^0.7.1"
   },
   "scripts": {
-    "prestart": "npm install",
+    "prestart": "npm install --package-lock=false",
     "start": "gulp"
   },
   "repository": {
     "type": "git",
-    "url": "https://ChristianKohler@github.com/ChristianKohler/web-presentation.git"
+    "url": "https://AverageMarcus@github.com/AverageMarcus/web-presentation.git"
   },
   "keywords": [
     "web",
     "components",
     "presentation"
   ],
-  "author": "Christian Kohler",
+  "contributors": [
+    {
+      "name": "Christian Kohler"
+    },
+    {
+      "name": "Marcus Noble"
+    }
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ChristianKohler/web-presentation/issues"
+    "url": "https://github.com/AverageMarcus/web-presentation/issues"
   },
-  "homepage": "https://github.com/ChristianKohler/web-presentation"
+  "homepage": "https://github.com/AverageMarcus/web-presentation"
 }
