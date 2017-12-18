@@ -11,7 +11,8 @@ var paths = {
     './src/web-presentation-keyboardcontrols.html',
     './src/web-presentation-progress.html',
     './src/web-code-sample.html',
-    './src/web-presentation-swipecontrols.html']
+    './src/web-presentation-swipecontrols.html',
+    './src/web-presentation-autoplay.html']
 };
 
 gulp.task('dist', function() {

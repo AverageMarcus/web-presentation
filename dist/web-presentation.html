@@ -107,7 +107,6 @@
         this.goToSlide(getSlideNumberFromHash());
       }
 
-
       previousSlide(){
         var activeSlide = this.slideData.activeSlide;
 
@@ -121,6 +120,9 @@
 
         if(activeSlide < this.slideData.slideCount - 1) {
           this.slideToSlide(activeSlide+1);
+          return true;
+        } else {
+          return false;
         }
       }
 
@@ -146,7 +148,9 @@
 
       nextStep() {
         if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.nextFragment()) {
-          this.nextSlide();
+          return this.nextSlide();
+        } else {
+          return true;
         }
       }
 
@@ -166,7 +170,7 @@
       }
 
       slideToSlide(number) {
-          this.goToSlide(number, this.slideData.activeSlide < number);
+        this.goToSlide(number, this.slideData.activeSlide < number);
       }
 
     }
@@ -689,4 +693,23 @@
       }
 
       customElements.define('web-presentation-swipecontrols', WebPresentationSwipeControlsElement);
+    })();</script>
+<script>(function(){
+      class WebPresentationAutoPlayElement extends HTMLElement {
+        constructor() {
+          super();
+        }
+
+        connectedCallback() {
+          const timeout = this.getAttribute('timeout') || 10000;
+
+          setInterval(() => {
+            if (!this.parentNode.nextStep()) {
+              this.parentNode.goToSlide(0);
+            }
+          }, timeout);
+        }
+      }
+
+      customElements.define('web-presentation-autoplay', WebPresentationAutoPlayElement);
     })();</script>

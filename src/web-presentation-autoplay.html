@@ -1,0 +1,21 @@
+<script>
+    (function(){
+      class WebPresentationAutoPlayElement extends HTMLElement {
+        constructor() {
+          super();
+        }
+
+        connectedCallback() {
+          const timeout = this.getAttribute('timeout') || 10000;
+
+          setInterval(() => {
+            if (!this.parentNode.nextStep()) {
+              this.parentNode.goToSlide(0);
+            }
+          }, timeout);
+        }
+      }
+
+      customElements.define('web-presentation-autoplay', WebPresentationAutoPlayElement);
+    })();
+  </script>

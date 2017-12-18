@@ -121,7 +121,6 @@
         this.goToSlide(getSlideNumberFromHash());
       }
 
-
       previousSlide(){
         var activeSlide = this.slideData.activeSlide;
 
@@ -135,6 +134,9 @@
 
         if(activeSlide < this.slideData.slideCount - 1) {
           this.slideToSlide(activeSlide+1);
+          return true;
+        } else {
+          return false;
         }
       }
 
@@ -160,7 +162,9 @@
 
       nextStep() {
         if(this.slideData.activeSlideElement && !this.slideData.activeSlideElement.nextFragment()) {
-          this.nextSlide();
+          return this.nextSlide();
+        } else {
+          return true;
         }
       }
 
@@ -180,7 +184,7 @@
       }
 
       slideToSlide(number) {
-          this.goToSlide(number, this.slideData.activeSlide < number);
+        this.goToSlide(number, this.slideData.activeSlide < number);
       }
 
     }
