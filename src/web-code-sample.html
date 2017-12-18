@@ -9,7 +9,7 @@
 
   <pre id="code"></pre>
 </template>
-<script src="https://cdn.rawgit.com/AverageMarcus/web-presentation/16f69291/dist/highlight.pack.js"></script>
+<script src="https://cdn.rawgit.com/AverageMarcus/web-presentation/master/dist/highlight.pack.js"></script>
 <script>
   (function(){
     const importDoc = (document._currentScript || document.currentScript).ownerDocument;
@@ -42,7 +42,7 @@
       }
 
       setTheme(theme) {
-        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'https://cdn.rawgit.com/AverageMarcus/web-presentation/16f69291/dist/solarized-light.css'}">`);
+        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'https://cdn.rawgit.com/AverageMarcus/web-presentation/master/dist/solarized-light.css'}">`);
         this.shadowRoot.insertBefore(stylesheet, this.shadowRoot.querySelector('#code'));
       }
     }

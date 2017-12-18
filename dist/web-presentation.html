@@ -603,7 +603,7 @@
 <template id="template-web-code-sample"><style>:host {
       display: block;
       text-align: left;
-    }</style><pre id="code"></pre></template><script src="https://cdn.rawgit.com/AverageMarcus/web-presentation/16f69291/dist/highlight.pack.js"></script><script>(function(){
+    }</style><pre id="code"></pre></template><script src="https://cdn.rawgit.com/AverageMarcus/web-presentation/master/dist/highlight.pack.js"></script><script>(function(){
     const importDoc = (document._currentScript || document.currentScript).ownerDocument;
     const templateContent = importDoc.querySelector('template#template-web-code-sample').content;
 
@@ -634,7 +634,7 @@
       }
 
       setTheme(theme) {
-        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'https://cdn.rawgit.com/AverageMarcus/web-presentation/16f69291/dist/solarized-light.css'}">`);
+        const stylesheet = document.createRange().createContextualFragment(`<link rel="stylesheet" href="${theme || 'https://cdn.rawgit.com/AverageMarcus/web-presentation/master/dist/solarized-light.css'}">`);
         this.shadowRoot.insertBefore(stylesheet, this.shadowRoot.querySelector('#code'));
       }
     }
