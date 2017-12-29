@@ -47,6 +47,7 @@ Use the web slide component in your html file.
 |`web-slide-title`|The title is the same element as web-slide. The idea is to make it easier to style all title slide|
 |`web-presentation-keyboardcontrols`|One way to control the presentation. Use left and right arrow keys or space to go to the next slide|
 |`web-presentation-progress`|Displays a progress bar on the bottom of the screen|
+|`web-presentation-autoplay`|Automatically progress to the next slide. `timeout` to set how long each slide is shown for in ms (default 1000). `loop` to endlessly repeat the slides.|
 |`web-code-sample`|Displays syntax highlighted code examples (requires `highlight.pack.js` and a theme CSS - available in the dist folder)|
 
 ### Config
